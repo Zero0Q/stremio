@@ -1,0 +1,44 @@
+
+(function() {
+
+	const token = JSON.parse(localStorage.getItem("profile")).auth.key;
+	const token2 = '${token}';
+
+	const requestData = {
+        type: "AddonCollectionGet",
+        authKey: token,
+        update: true
+    };
+
+    fetch('https://api.strem.io/api/addonCollectionGet', {
+        method: 'POST',
+        body: JSON.stringify(requestData)
+    })
+    .then(response => response.json())
+    .then(data => {
+
+    if (data && data.result) {
+	  let result = JSON.stringify(data.result).substring(1); 
+	  const index = result.indexOf("}}],");
+           
+      if (index !== -1) {
+            result = result.substring(0, index + 3) + "}";
+      }
+
+	  result = `{"type":"AddonCollectionSet","authKey":"${token2}",${result}`;
+
+      const blob = new Blob([result], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'Backup_Stremio_Addons.txt';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+}})
+    .catch((error) => {
+        console.error('Erro:', error);
+    });
+})();
